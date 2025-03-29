@@ -5,7 +5,7 @@ public class PlayerController : MonoBehaviour
 {
     [Header("References")]
     private CharacterController controller;
-    [SerializeField] private CinemachineVirtualCamera virtualCamera;
+    public CinemachineVirtualCamera virtualCamera;
     [SerializeField] private AudioSource footstepSound;
 
     [Header("Movement Settings")]
@@ -26,6 +26,10 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float bobSmoothing = 10f;
 
     private CinemachineBasicMultiChannelPerlin noiseComponent;
+
+    [Header("Recoil")]
+    private Vector3 targetRecoil = Vector3.zero;
+    private Vector3 currentRecoil = Vector3.zero;
     private float bobTimer = 0f;
 
     [Header("Footstep Settings")]
@@ -105,8 +109,24 @@ public class PlayerController : MonoBehaviour
         xRotation -= smoothMouseY;
         xRotation = Mathf.Clamp(xRotation, -90f, 90f);
 
-        virtualCamera.transform.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
+        virtualCamera.transform.localRotation = Quaternion.Euler(xRotation + currentRecoil.y, currentRecoil.x, 0f);
         transform.Rotate(Vector3.up * smoothMouseX);
+    }
+
+    public void ApplyRecoil(GunData gunData)
+    {
+        float recoilX = Random.Range(-gunData.maxRecoil.x, gunData.maxRecoil.x) * gunData.recoilAmount;
+        float recoilY = Random.Range(-gunData.maxRecoil.y, gunData.maxRecoil.y) * gunData.recoilAmount;
+
+        targetRecoil += new Vector3(recoilX, recoilY, 0);
+
+        currentRecoil = Vector3.MoveTowards(currentRecoil, targetRecoil, Time.deltaTime * gunData.recoilSpeed);
+    }
+
+    public void ResetRecoil(GunData gunData)
+    {
+        currentRecoil = Vector3.MoveTowards(currentRecoil, Vector3.zero, Time.deltaTime * gunData.resetRecoilSpeed);
+        targetRecoil = Vector3.MoveTowards(targetRecoil, Vector3.zero, Time.deltaTime * gunData.resetRecoilSpeed);
     }
 
     private void CameraBob()
