@@ -1,3 +1,5 @@
+using System.Collections;
+using Unity.Mathematics;
 using UnityEngine;
 
 public class Pistol : Gun
@@ -20,10 +22,47 @@ public class Pistol : Gun
     public override void Shoot()
     {
         RaycastHit hit;
-
+        Vector3 target = Vector3.zero;
         if (Physics.Raycast(cameraTransform.position, cameraTransform.forward, out hit, gunData.shootingRange,gunData.targetLayerMask)) 
         {
             Debug.Log(gunData.gunName + " hit " + hit.collider.name);
+            target = hit.point;
         }
+        else
+        {
+            target = cameraTransform.position + cameraTransform.forward * gunData.shootingRange;
+        }
+        StartCoroutine(Bulletfire(target, hit));
+    }
+
+    private IEnumerator Bulletfire(Vector3 target, RaycastHit hit)
+    {
+        GameObject bulletTrail = Instantiate(gunData.bulletTrailPrefab, gunMuzzle.position, quaternion.identity);
+        while (bulletTrail != null && Vector3.Distance(bulletTrail.transform.position, target) > 0.1f)
+        {
+            bulletTrail.transform.position = Vector3.MoveTowards(bulletTrail.transform.position, target,
+                Time.deltaTime * gunData.bulletSpeed);
+            yield return null;
+        }
+        Destroy(bulletTrail);
+
+        if (hit.collider != null)
+        {
+            BulletHitFX(hit);
+        }
+    }
+
+    private void BulletHitFX(RaycastHit hit)
+    {
+        Vector3 hitPosition = hit.point + hit.normal * 0.01f;
+
+        GameObject bulletHole = Instantiate(bulletHolePrefab, hitPosition, Quaternion.LookRotation(hit.normal));
+        GameObject hitParticle = Instantiate(bulletHitParticlePrefab, hitPosition, Quaternion.LookRotation(hit.normal));
+
+        bulletHole.transform.parent = hit.collider.transform;
+        hitParticle.transform.parent = hit.collider.transform;
+        
+        Destroy(bulletHole, 5f);
+        Destroy(hitParticle, 5f);
     }
 }

@@ -4,10 +4,15 @@ using UnityEngine;
 public abstract class Gun : MonoBehaviour
 {
     public GunData gunData;
+    public Transform gunMuzzle;
+
+    public GameObject bulletHolePrefab;
+    public GameObject bulletHitParticlePrefab;
+    
     [HideInInspector] public PlayerController playerController;
     [HideInInspector] public Transform cameraTransform;
 
-    private float currentAmo = 0f;
+    private int currentAmo = 0;
     private float nextTimeToFire = 0f;
 
     private bool isReloading = false;
@@ -57,6 +62,8 @@ public abstract class Gun : MonoBehaviour
         if (currentAmo <= 0)
         {
             Debug.Log("Ta sem bala");
+            TryReload();
+            return;
         }
 
         if (Time.time >= nextTimeToFire)

@@ -895,11 +895,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   virtualCamera: {fileID: 446686167}
   footstepSound: {fileID: 510735130}
-  moveSpeed: 5
+  moveSpeed: 8
   sprintSpeedMultiplier: 2
   sprintTransitSpeed: 5
   gravity: 9.81
   jumpHeight: 2
+  rotSpeed: 50
   bobFrequency: 1
   bobAmplitude: 1
   bobSmoothing: 10
@@ -1599,6 +1600,37 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1161664005
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1161664006}
+  m_Layer: 0
+  m_Name: Gun Muzzle
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1161664006
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1161664005}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.6746, z: 0.5122}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2131561500}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1205409865
 PrefabInstance:
@@ -2373,6 +2405,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1205409866}
+  - {fileID: 1161664006}
   m_Father: {fileID: 348457906}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &2131561501
@@ -2388,6 +2421,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   gunData: {fileID: 11400000, guid: 6e575e86511492a4397f58db9ee9952b, type: 2}
+  gunMuzzle: {fileID: 1161664006}
+  bulletHolePrefab: {fileID: 6336253587329800486, guid: a9ed6e929aea0484cbcd7319b8c15198, type: 3}
+  bulletHitParticlePrefab: {fileID: 7806140890336879258, guid: 9237a1a75a020dc4d9d59f1eb98d34f7, type: 3}
   playerController: {fileID: 0}
   cameraTransform: {fileID: 0}
 --- !u!1660057539 &9223372036854775807

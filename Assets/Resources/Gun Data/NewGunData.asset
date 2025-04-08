@@ -24,3 +24,5 @@ MonoBehaviour:
   maxRecoil: {x: 2, y: 1}
   recoilSpeed: 10
   resetRecoilSpeed: 5
+  bulletTrailPrefab: {fileID: 7806140890336879258, guid: 9237a1a75a020dc4d9d59f1eb98d34f7, type: 3}
+  bulletSpeed: 100

@@ -14,6 +14,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float sprintTransitSpeed = 5f;
     [SerializeField] private float gravity = 9.81f;
     [SerializeField] private float jumpHeight = 2f;
+    [SerializeField] private float rotSpeed = 50f;
 
     private float verticalVelocity;
     private float currentSpeed;
@@ -102,15 +103,20 @@ public class PlayerController : MonoBehaviour
 
     private void Turn()
     {
-        // Suavização do input do mouse
-        float smoothMouseX = Mathf.Lerp(0, mouseX, 0.5f) * mouseSensitivity * Time.deltaTime;
-        float smoothMouseY = Mathf.Lerp(0, mouseY, 0.5f) * mouseSensitivity * Time.deltaTime;
+        // Obter inputs sem suavização desnecessária (a suavização deve ser feita pelo Cinemachine)
+        float mouseXInput = mouseX * mouseSensitivity * Time.deltaTime;
+        float mouseYInput = mouseY * mouseSensitivity * Time.deltaTime;
 
-        xRotation -= smoothMouseY;
+        // Rotação horizontal (personagem)
+        transform.Rotate(Vector3.up * mouseXInput);
+
+        // Rotação vertical (câmera)
+        xRotation -= mouseYInput;
         xRotation = Mathf.Clamp(xRotation, -90f, 90f);
 
-        virtualCamera.transform.localRotation = Quaternion.Euler(xRotation + currentRecoil.y, currentRecoil.x, 0f);
-        transform.Rotate(Vector3.up * smoothMouseX);
+        // Aplicar rotação da câmera com recuo
+        Vector3 recoilRotation = new Vector3(xRotation + currentRecoil.y, currentRecoil.x, 0f);
+        virtualCamera.transform.localRotation = Quaternion.Euler(recoilRotation);
     }
 
     public void ApplyRecoil(GunData gunData)
