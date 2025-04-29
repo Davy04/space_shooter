@@ -12,6 +12,8 @@ public abstract class Gun : MonoBehaviour
     [HideInInspector] public PlayerController playerController;
     [HideInInspector] public Transform cameraTransform;
 
+    [SerializeField] private WeaponRecoil _weaponRecoil;
+
     private int currentAmo = 0;
     private float nextTimeToFire = 0f;
 
@@ -80,6 +82,8 @@ public abstract class Gun : MonoBehaviour
         Shoot();
 
         playerController.ApplyRecoil(gunData);
+        _weaponRecoil.ApplyRecoil();
+        
     }
 
     public abstract void Shoot();

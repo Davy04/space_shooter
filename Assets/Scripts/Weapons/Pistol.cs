@@ -56,13 +56,10 @@ public class Pistol : Gun
     {
         Vector3 hitPosition = hit.point + hit.normal * 0.01f;
 
-        GameObject bulletHole = Instantiate(bulletHolePrefab, hitPosition, Quaternion.LookRotation(hit.normal));
-        GameObject hitParticle = Instantiate(bulletHitParticlePrefab, hitPosition, Quaternion.LookRotation(hit.normal));
-
-        bulletHole.transform.parent = hit.collider.transform;
-        hitParticle.transform.parent = hit.collider.transform;
-        
-        Destroy(bulletHole, 5f);
-        Destroy(hitParticle, 5f);
+        if (bulletHitParticlePrefab != null)
+        {
+            GameObject explosion = Instantiate(bulletHitParticlePrefab, hitPosition, Quaternion.identity);
+            Destroy(explosion, 2f); // Destroi depois de 2 segundos (tempo da explosão)
+        }
     }
 }
