@@ -4,7 +4,8 @@ using UnityEngine;
 
 public class Pistol : Gun
 {
-
+    
+    [SerializeField] private WeaponReloadAnimation reloadAnimation;
     public override void Update()
     {
         base.Update();
@@ -15,6 +16,7 @@ public class Pistol : Gun
         }
         if(Input.GetKeyDown(KeyCode.R)) 
         {
+            reloadAnimation?.PlayReloadAnimation();
             TryReload();
         }
     }
@@ -62,4 +64,10 @@ public class Pistol : Gun
             Destroy(explosion, 2f); // Destroi depois de 2 segundos (tempo da explosão)
         }
     }
+    
+    public override void OnReloadStart()
+    {
+        reloadAnimation?.PlayReloadAnimation();
+    }
+
 }

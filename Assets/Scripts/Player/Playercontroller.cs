@@ -31,7 +31,7 @@ public class PlayerController : MonoBehaviour
     [Header("Recoil")]
     private Vector3 targetRecoil = Vector3.zero;
     private Vector3 currentRecoil = Vector3.zero;
-    private float bobTimer = 0f;
+    //private float bobTimer = 0f;
 
     [Header("Footstep Settings")]
     [SerializeField] private LayerMask terrainLayerMask;

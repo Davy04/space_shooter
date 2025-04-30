@@ -6,8 +6,9 @@ public abstract class Gun : MonoBehaviour
     public GunData gunData;
     public Transform gunMuzzle;
 
-    public GameObject bulletHolePrefab;
+    public GameObject bulletHolePrefab;//adicionar novamente
     public GameObject bulletHitParticlePrefab;
+   
     
     [HideInInspector] public PlayerController playerController;
     [HideInInspector] public Transform cameraTransform;
@@ -36,6 +37,8 @@ public abstract class Gun : MonoBehaviour
     {
         if (!isReloading && currentAmo < gunData.magazineSize)
         {
+            isReloading = true;
+            OnReloadStart();
             StartCoroutine(Reload());
         }
     }
@@ -55,25 +58,26 @@ public abstract class Gun : MonoBehaviour
 
     public void TryShoot()
     {
-        if (isReloading) 
+        if (isReloading)
         {
-            Debug.Log("is reloading");
+            Debug.Log("Is reloading");
             return;
         }
 
         if (currentAmo <= 0)
         {
-            Debug.Log("Ta sem bala");
-            TryReload();
+            Debug.Log("Sem munição! Recargando automaticamente...");
+            TryReload(); // ← recarrega automático
             return;
         }
 
         if (Time.time >= nextTimeToFire)
         {
-            nextTimeToFire = Time.time + (1/ gunData.fireRate);
+            nextTimeToFire = Time.time + (1f / gunData.fireRate);
             HandleShoot();
         }
     }
+
 
     private void HandleShoot()
     {
@@ -87,4 +91,6 @@ public abstract class Gun : MonoBehaviour
     }
 
     public abstract void Shoot();
+    
+    public virtual void OnReloadStart() {}
 }
