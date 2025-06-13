@@ -31,7 +31,6 @@ public class PlayerController : MonoBehaviour
     [Header("Recoil")]
     private Vector3 targetRecoil = Vector3.zero;
     private Vector3 currentRecoil = Vector3.zero;
-    //private float bobTimer = 0f;
 
     [Header("Footstep Settings")]
     [SerializeField] private LayerMask terrainLayerMask;
@@ -80,22 +79,19 @@ public class PlayerController : MonoBehaviour
 
     private void GroundMovement()
     {
-        // Suaviza��o dos inputs de movimento
         float smoothMoveInput = Mathf.Lerp(0, moveInput, 0.5f);
         float smoothTurnInput = Mathf.Lerp(0, turnInput, 0.5f);
 
         Vector3 move = new Vector3(smoothTurnInput, 0, smoothMoveInput);
         move = virtualCamera.transform.TransformDirection(move);
-
-        // Controle de sprint
+        
         currentSpeedMultiplier = Input.GetKey(KeyCode.LeftShift) ?
             Mathf.Lerp(currentSpeedMultiplier, sprintSpeedMultiplier, sprintTransitSpeed * Time.deltaTime) :
             Mathf.Lerp(currentSpeedMultiplier, 1f, sprintTransitSpeed * Time.deltaTime);
 
         currentSpeed = Mathf.Lerp(currentSpeed, moveSpeed * currentSpeedMultiplier, sprintTransitSpeed * Time.deltaTime);
         move *= currentSpeed;
-
-        // Aplica��o da gravidade e pulo
+        
         move.y = VerticalForceCalculation();
 
         controller.Move(move * Time.deltaTime);
@@ -103,18 +99,14 @@ public class PlayerController : MonoBehaviour
 
     private void Turn()
     {
-        // Obter inputs sem suaviza��o desnecess�ria (a suaviza��o deve ser feita pelo Cinemachine)
         float mouseXInput = mouseX * mouseSensitivity * Time.deltaTime;
         float mouseYInput = mouseY * mouseSensitivity * Time.deltaTime;
-
-        // Rota��o horizontal (personagem)
+        
         transform.Rotate(Vector3.up * mouseXInput);
-
-        // Rota��o vertical (c�mera)
+        
         xRotation -= mouseYInput;
         xRotation = Mathf.Clamp(xRotation, -90f, 90f);
-
-        // Aplicar rota��o da c�mera com recuo
+        
         Vector3 recoilRotation = new Vector3(xRotation + currentRecoil.y, currentRecoil.x, 0f);
         virtualCamera.transform.localRotation = Quaternion.Euler(recoilRotation);
     }
@@ -146,8 +138,7 @@ public class PlayerController : MonoBehaviour
             targetAmplitude = bobAmplitude * currentSpeedMultiplier * speedFactor;
             targetFrequency = bobFrequency * currentSpeedMultiplier * speedFactor;
         }
-
-        // Suaviza��o do camera bob
+        
         noiseComponent.m_AmplitudeGain = Mathf.Lerp(
             noiseComponent.m_AmplitudeGain,
             targetAmplitude,
@@ -196,7 +187,7 @@ public class PlayerController : MonoBehaviour
     {
         if (controller.isGrounded)
         {
-            verticalVelocity = -0.5f; // Pequena for�a para manter no ch�o
+            verticalVelocity = -0.5f;
 
             if (Input.GetButtonDown("Jump"))
             {

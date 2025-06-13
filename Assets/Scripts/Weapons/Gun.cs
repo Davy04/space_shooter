@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using UnityEngine;
 
@@ -6,7 +7,7 @@ public abstract class Gun : MonoBehaviour
     public GunData gunData;
     public Transform gunMuzzle;
 
-    public GameObject bulletHolePrefab;//adicionar novamente
+    public GameObject bulletHolePrefab;
     public GameObject bulletHitParticlePrefab;
    
     
@@ -15,14 +16,17 @@ public abstract class Gun : MonoBehaviour
 
     [SerializeField] private WeaponRecoil _weaponRecoil;
 
-    private int currentAmo = 0;
+    public int currentAmo = 0;
     private float nextTimeToFire = 0f;
 
     private bool isReloading = false;
+    
+    public event Action OnAmmoChanged;
 
     private void Start()
     {
         currentAmo = gunData.magazineSize;
+        NotifyAmmoChanged();
 
         playerController = transform.root.GetComponent<PlayerController>();
         cameraTransform = playerController.virtualCamera.transform;
@@ -40,6 +44,7 @@ public abstract class Gun : MonoBehaviour
             isReloading = true;
             OnReloadStart();
             StartCoroutine(Reload());
+            NotifyAmmoChanged();
         }
     }
 
@@ -67,7 +72,7 @@ public abstract class Gun : MonoBehaviour
         if (currentAmo <= 0)
         {
             Debug.Log("Sem munição! Recargando automaticamente...");
-            TryReload(); // ← recarrega automático
+            TryReload();
             return;
         }
 
@@ -82,12 +87,18 @@ public abstract class Gun : MonoBehaviour
     private void HandleShoot()
     {
         currentAmo--;
-        Debug.Log(currentAmo + "balas restantes");
+        NotifyAmmoChanged();
+        Debug.Log(currentAmo + " balas restantes");
         Shoot();
 
         playerController.ApplyRecoil(gunData);
         _weaponRecoil.ApplyRecoil();
         
+    }
+    
+    private void NotifyAmmoChanged()
+    {
+        OnAmmoChanged?.Invoke();
     }
 
     public abstract void Shoot();

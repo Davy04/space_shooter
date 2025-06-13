@@ -4,7 +4,6 @@ using UnityEngine;
 
 public class Pistol : Gun
 {
-    
     [SerializeField] private WeaponReloadAnimation reloadAnimation;
     public override void Update()
     {
@@ -25,10 +24,17 @@ public class Pistol : Gun
     {
         RaycastHit hit;
         Vector3 target = Vector3.zero;
-        if (Physics.Raycast(cameraTransform.position, cameraTransform.forward, out hit, gunData.shootingRange,gunData.targetLayerMask)) 
+        if (Physics.Raycast(cameraTransform.position, cameraTransform.forward, out hit, gunData.shootingRange, gunData.targetLayerMask)) 
         {
             Debug.Log(gunData.gunName + " hit " + hit.collider.name);
             target = hit.point;
+
+            // Verifica se acertou um inimigo e aplica dano
+            EnemyHealth enemyHealth = hit.collider.GetComponent<EnemyHealth>();
+            if (enemyHealth != null)
+            {
+                enemyHealth.TakeDamage(gunData.damage); // Aplica o dano do scriptable object
+            }
         }
         else
         {
@@ -61,7 +67,7 @@ public class Pistol : Gun
         if (bulletHitParticlePrefab != null)
         {
             GameObject explosion = Instantiate(bulletHitParticlePrefab, hitPosition, Quaternion.identity);
-            Destroy(explosion, 2f); // Destroi depois de 2 segundos (tempo da explosão)
+            Destroy(explosion, 2f);
         }
     }
     
@@ -69,5 +75,4 @@ public class Pistol : Gun
     {
         reloadAnimation?.PlayReloadAnimation();
     }
-
 }
