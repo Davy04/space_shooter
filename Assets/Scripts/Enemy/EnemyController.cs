@@ -1,80 +1,89 @@
-using System.Collections;
 using UnityEngine;
+using System.Collections;
+using System;
 
 public class EnemyController : MonoBehaviour
 {
     [Header("Target Settings")]
     [SerializeField] private Transform target;
-    
+    [SerializeField] private float heightIgnoreThreshold = 1.5f;
+
     [Header("Movement Settings")]
     [SerializeField] private float detectionRange = 5f;
     [SerializeField] private float moveSpeed = 3f;
-    
+    [SerializeField] private float rotationSpeed = 5f;
+
     [Header("Attack Settings")]
     [SerializeField] private float attackRange = 1.5f;
     [SerializeField] private int damage = 10;
     [SerializeField] private float attackCooldown = 1f;
     [SerializeField] private float attackDelay = 0.5f;
-    
+
     [Header("References")]
     [SerializeField] private Transform model;
-    [SerializeField] private Animator animator;
-    
-    [Header("Damage Settings")]
-    [SerializeField] private PlayerStats playerStats; 
-    
+    [SerializeField] private PlayerStats playerStats;
+
+    public event Action<bool> OnMovementStateChanged;
+    public event Action OnAttack;
+
     private bool isMoving = false;
     private bool isAttacking = false;
-    private float initialY;
     private Coroutine attackCoroutine;
-
-    private void Start()
-    {
-        initialY = transform.position.y;
-    }
 
     private void Update()
     {
         if (isAttacking) return;
 
-        float distanceToTarget = Vector3.Distance(transform.position, target.position);
-        
+        Vector3 targetPosition = GetFlattenedTargetPosition();
+        float distanceToTarget = Vector3.Distance(transform.position, targetPosition);
+
         if (distanceToTarget <= attackRange)
         {
             if (attackCoroutine == null)
             {
-                attackCoroutine = StartCoroutine(Attack());
+                attackCoroutine = StartCoroutine(AttackRoutine());
             }
         }
         else if (!isMoving && distanceToTarget <= detectionRange)
         {
-            StartCoroutine(MoveToTarget());
+            StartCoroutine(MoveToTargetRoutine());
         }
     }
 
-    private IEnumerator MoveToTarget()
+    private Vector3 GetFlattenedTargetPosition()
+    {
+        // Ignora completamente a diferença de altura no cálculo de direção
+        return new Vector3(target.position.x, transform.position.y, target.position.z);
+    }
+
+    private IEnumerator MoveToTargetRoutine()
     {
         isMoving = true;
-        animator?.SetBool("isMoving", true);
+        OnMovementStateChanged?.Invoke(true);
 
-        while (Vector3.Distance(transform.position, target.position) <= detectionRange && 
-               Vector3.Distance(transform.position, target.position) > attackRange &&
-               !isAttacking)
+        while (true)
         {
-            Vector3 targetPosition = new Vector3(
-                target.position.x,
-                initialY,
-                target.position.z
-            );
+            Vector3 targetPosition = GetFlattenedTargetPosition();
+            float distanceToTarget = Vector3.Distance(transform.position, targetPosition);
 
+            if (distanceToTarget > detectionRange || distanceToTarget <= attackRange || isAttacking)
+                break;
+
+            // Calcula direção apenas no eixo XZ
             Vector3 direction = (targetPosition - transform.position).normalized;
-            
+
+            // Rotação apenas no eixo Y
             if (direction != Vector3.zero)
             {
-                Quaternion lookRotation = Quaternion.LookRotation(direction);
-                model.rotation = Quaternion.Slerp(model.rotation, lookRotation, Time.deltaTime * 5f);
+                Quaternion lookRotation = Quaternion.LookRotation(new Vector3(direction.x, 0, direction.z));
+                model.rotation = Quaternion.Slerp(
+                    model.rotation,
+                    lookRotation,
+                    rotationSpeed * Time.deltaTime
+                );
             }
 
+            // Movimento mantendo a posição Y original
             transform.position = Vector3.MoveTowards(
                 transform.position,
                 targetPosition,
@@ -85,23 +94,23 @@ public class EnemyController : MonoBehaviour
         }
 
         isMoving = false;
-        animator?.SetBool("isMoving", false);
+        OnMovementStateChanged?.Invoke(false);
     }
 
-    private IEnumerator Attack()
+    private IEnumerator AttackRoutine()
     {
         isAttacking = true;
-        animator?.SetTrigger("Attack");
-    
+        OnAttack?.Invoke();
+
         yield return new WaitForSeconds(attackDelay);
-    
-        if (Vector3.Distance(transform.position, target.position) <= attackRange)
+
+        if (Vector3.Distance(transform.position, GetFlattenedTargetPosition()) <= attackRange)
         {
             playerStats?.ReceiveDamage(damage);
         }
-    
-        yield return new WaitForSeconds(animator.GetCurrentAnimatorStateInfo(0).length - attackDelay + attackCooldown);
-    
+
+        yield return new WaitForSeconds(attackCooldown);
+
         isAttacking = false;
         attackCoroutine = null;
     }
@@ -110,7 +119,7 @@ public class EnemyController : MonoBehaviour
     {
         Gizmos.color = Color.green;
         Gizmos.DrawWireSphere(transform.position, detectionRange);
-        
+
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(transform.position, attackRange);
     }

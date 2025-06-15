@@ -1,18 +1,24 @@
 using UnityEngine;
-using UnityEngine.UI;
 using TMPro;
+using System.Collections.Generic;
+using System.Linq;
 
 public class Timer : MonoBehaviour
 {
-    [Header("Referência UI")]
-    [SerializeField] private TMP_Text _timerText; // Arraste seu objeto Text aqui no Inspector!
+    [SerializeField] private TMP_Text _timerText;
+    [SerializeField] private TMP_Text[] _bestTimeTexts; // Array para os 5 melhores tempos
+    [SerializeField] private GameObject _highScorePopup;
+    [SerializeField] private TMP_InputField _nameInputField;
 
     private float _elapsedTime;
     private bool _isRunning = true;
+    private const string HIGH_SCORES_KEY = "HighScores";
+    private List<HighScoreEntry> _highScores = new List<HighScoreEntry>();
 
-    void Start()
+    private void Start()
     {
-        _elapsedTime = 0f;
+        LoadHighScores();
+        UpdateHighScoresUI();
     }
 
     void Update()
@@ -24,21 +30,107 @@ public class Timer : MonoBehaviour
         }
     }
 
+    public void StopAndSaveTime()
+    {
+        if (!_isRunning) return;
+
+        _isRunning = false;
+
+        // Pausa o tempo do jogo
+        Time.timeScale = 0f;
+
+        // Mostra e libera o cursor
+        Cursor.visible = true;
+        Cursor.lockState = CursorLockMode.None;
+
+        // Ativa o popup
+        _highScorePopup.SetActive(true);
+
+        // Seleciona automaticamente o InputField
+        _nameInputField.Select();
+        _nameInputField.ActivateInputField();
+    }
+
+    public void SavePlayerScore()
+    {
+        string playerName = string.IsNullOrEmpty(_nameInputField.text) ? "Anônimo" : _nameInputField.text;
+
+        _highScores.Add(new HighScoreEntry(playerName, _elapsedTime));
+        _highScores = _highScores.OrderBy(score => score.time).Take(5).ToList();
+        SaveHighScores();
+        UpdateHighScoresUI();
+
+        _highScorePopup.SetActive(false);
+
+        // Retoma o jogo
+        Time.timeScale = 1f;
+
+        // Esconde o cursor (opcional, dependendo do seu jogo)
+        Cursor.visible = false;
+        Cursor.lockState = CursorLockMode.Locked;
+    }
+
+    private void LoadHighScores()
+    {
+        string json = PlayerPrefs.GetString(HIGH_SCORES_KEY, "");
+
+        if (!string.IsNullOrEmpty(json))
+        {
+            HighScoreList wrapper = JsonUtility.FromJson<HighScoreList>(json);
+            _highScores = wrapper.highScores;
+        }
+    }
+
+    private void SaveHighScores()
+    {
+        HighScoreList wrapper = new HighScoreList { highScores = _highScores };
+        string json = JsonUtility.ToJson(wrapper);
+        PlayerPrefs.SetString(HIGH_SCORES_KEY, json);
+        PlayerPrefs.Save();
+    }
+
     private void UpdateTimerUI()
     {
         if (_timerText != null)
         {
-            // Formatação: MM:SS:MS (ex.: 01:23:45)
-            int minutes = (int)(_elapsedTime / 60f);
-            int seconds = (int)(_elapsedTime % 60f);
-            int milliseconds = (int)((_elapsedTime * 1000f) % 1000f) / 10; // 2 dígitos
-
-            _timerText.text = string.Format("{0:00}:{1:00}:{2:00}", minutes, seconds, milliseconds);
+            _timerText.text = FormatTime(_elapsedTime);
         }
     }
 
-    // ==== Métodos Úteis (opcionais) ====
-    public void PauseTimer() => _isRunning = false;
-    public void ResumeTimer() => _isRunning = true;
-    public void ResetTimer() => _elapsedTime = 0f;
+    private void UpdateHighScoresUI()
+    {
+        for (int i = 0; i < _bestTimeTexts.Length; i++)
+        {
+            if (i < _highScores.Count)
+            {
+                _bestTimeTexts[i].text = $"{i + 1}. {_highScores[i].playerName} - {FormatTime(_highScores[i].time)}";
+            }
+            else
+            {
+                _bestTimeTexts[i].text = $"{i + 1}. --:--:--";
+            }
+        }
+    }
+
+    public static string FormatTime(float time)
+    {
+        int minutes = (int)(time / 60f);
+        int seconds = (int)(time % 60f);
+        int milliseconds = (int)((time * 1000f) % 1000f) / 10;
+        return string.Format("{0:00}:{1:00}:{2:00}", minutes, seconds, milliseconds);
+    }
+
+    public bool IsHighScorePopupActive()
+    {
+        return _highScorePopup != null && _highScorePopup.activeInHierarchy;
+    }
+}
+
+
+
+// Classe wrapper para serialização
+[System.Serializable]
+public class HighScoreList
+{
+    public List<HighScoreEntry> highScores;
 }

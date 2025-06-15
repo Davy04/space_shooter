@@ -1,53 +1,41 @@
-using System.Collections;
 using UnityEngine;
+using UnityEngine.Events;
 
 public class EnemyHealth : MonoBehaviour
 {
-    [Header("Configurações de Vida")]
+    [Header("Health Settings")]
     [SerializeField] private int maxHealth = 100;
-    [SerializeField] private float hitFlashDuration = 0.1f;
-    [SerializeField] private Color hitFlashColor = Color.red;
+
+    public UnityEvent OnDamageTaken;
+    public UnityEvent OnDeath;
 
     private int currentHealth;
-    private Renderer enemyRenderer;
-    private Color originalColor;
+    private bool isDead = false;
 
     private void Start()
     {
+        EnemyManager.Instance.RegisterEnemy(this);
         currentHealth = maxHealth;
-        enemyRenderer = GetComponentInChildren<Renderer>();
-        if (enemyRenderer != null)
-        {
-            originalColor = enemyRenderer.material.color;
-        }
     }
 
     public void TakeDamage(int damageAmount)
     {
+        if (isDead) return;
+
         currentHealth -= damageAmount;
-        Debug.Log($"{gameObject.name} tomou {damageAmount} de dano. Vida restante: {currentHealth}");
-        
-        if (enemyRenderer != null)
-        {
-            StartCoroutine(HitFlash());
-        }
+        OnDamageTaken?.Invoke();
 
         if (currentHealth <= 0)
         {
             Die();
         }
     }
-    
-    private IEnumerator HitFlash()
-    {
-        enemyRenderer.material.color = hitFlashColor;
-        yield return new WaitForSeconds(hitFlashDuration);
-        enemyRenderer.material.color = originalColor;
-    }
 
     private void Die()
     {
-        Debug.Log($"{gameObject.name} morreu!");
-        Destroy(gameObject);
+        EnemyManager.Instance.UnregisterEnemy(this);
+        isDead = true;
+        OnDeath?.Invoke();
+        Destroy(gameObject); 
     }
 }

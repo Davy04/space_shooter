@@ -8,6 +8,11 @@ public class PlayerController : MonoBehaviour
     public CinemachineVirtualCamera virtualCamera;
     [SerializeField] private AudioSource footstepSound;
 
+    [Header("UI References")]
+    [SerializeField] private Timer timer;
+    [SerializeField] private PauseMenu pauseMenu;
+
+
     [Header("Movement Settings")]
     [SerializeField] private float moveSpeed = 5f;
     [SerializeField] private float sprintSpeedMultiplier = 2f;
@@ -59,8 +64,34 @@ public class PlayerController : MonoBehaviour
         Cursor.visible = false;
     }
 
+    private void OnEnable()
+    {
+        SetupCursor();
+    }
+
+    private void SetupCursor()
+    {
+        if (!PauseMenu.isPaused && !timer.IsHighScorePopupActive())
+        {
+            Cursor.visible = false;
+            Cursor.lockState = CursorLockMode.Locked;
+        }
+    }
+
     private void Update()
     {
+
+        if (timer != null && timer.IsHighScorePopupActive())
+        {
+            return;
+        }
+        if (PauseMenu.isPaused) return;
+
+        if (Cursor.lockState != CursorLockMode.Locked)
+        {
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
+        }
         InputManagement();
         Movement();
         PlayFootstepSound();
