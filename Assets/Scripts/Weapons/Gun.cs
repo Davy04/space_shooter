@@ -63,6 +63,13 @@ public abstract class Gun : MonoBehaviour
 
     public void TryShoot()
     {
+        // Verificação do countdown (nova linha adicionada)
+        if (UICountdown.IsCountdownActive())
+        {
+            Debug.Log("Aguardando término do countdown...");
+            return;
+        }
+
         if (isReloading)
         {
             Debug.Log("Is reloading");
@@ -71,7 +78,7 @@ public abstract class Gun : MonoBehaviour
 
         if (currentAmo <= 0)
         {
-            Debug.Log("Sem munição! Recargando automaticamente...");
+            Debug.Log("Sem munição! Recarregando automaticamente...");
             TryReload();
             return;
         }

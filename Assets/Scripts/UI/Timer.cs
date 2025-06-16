@@ -6,7 +6,7 @@ using System.Linq;
 public class Timer : MonoBehaviour
 {
     [SerializeField] private TMP_Text _timerText;
-    [SerializeField] private TMP_Text[] _bestTimeTexts; // Array para os 5 melhores tempos
+    [SerializeField] private TMP_Text[] _bestTimeTexts;
     [SerializeField] private GameObject _highScorePopup;
     [SerializeField] private TMP_InputField _nameInputField;
 
@@ -23,7 +23,7 @@ public class Timer : MonoBehaviour
 
     void Update()
     {
-        if (_isRunning)
+        if (_isRunning && !IsHighScorePopupActive())
         {
             _elapsedTime += Time.deltaTime;
             UpdateTimerUI();
@@ -35,25 +35,21 @@ public class Timer : MonoBehaviour
         if (!_isRunning) return;
 
         _isRunning = false;
-
-        // Pausa o tempo do jogo
+        
         Time.timeScale = 0f;
-
-        // Mostra e libera o cursor
+        
         Cursor.visible = true;
         Cursor.lockState = CursorLockMode.None;
-
-        // Ativa o popup
+        
         _highScorePopup.SetActive(true);
-
-        // Seleciona automaticamente o InputField
+        
         _nameInputField.Select();
         _nameInputField.ActivateInputField();
     }
 
     public void SavePlayerScore()
     {
-        string playerName = string.IsNullOrEmpty(_nameInputField.text) ? "Anônimo" : _nameInputField.text;
+        string playerName = string.IsNullOrEmpty(_nameInputField.text) ? "Anï¿½nimo" : _nameInputField.text;
 
         _highScores.Add(new HighScoreEntry(playerName, _elapsedTime));
         _highScores = _highScores.OrderBy(score => score.time).Take(5).ToList();
@@ -61,11 +57,9 @@ public class Timer : MonoBehaviour
         UpdateHighScoresUI();
 
         _highScorePopup.SetActive(false);
-
-        // Retoma o jogo
+        
         Time.timeScale = 1f;
-
-        // Esconde o cursor (opcional, dependendo do seu jogo)
+        
         Cursor.visible = false;
         Cursor.lockState = CursorLockMode.Locked;
     }
@@ -124,11 +118,13 @@ public class Timer : MonoBehaviour
     {
         return _highScorePopup != null && _highScorePopup.activeInHierarchy;
     }
+    
+    public void PauseTimer(bool pause)
+    {
+        _isRunning = !pause;
+    }
 }
 
-
-
-// Classe wrapper para serialização
 [System.Serializable]
 public class HighScoreList
 {

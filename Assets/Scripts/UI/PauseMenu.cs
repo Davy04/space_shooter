@@ -4,18 +4,28 @@ using UnityEngine.SceneManagement;
 
 public class PauseMenu : MonoBehaviour
 {
-    [Header("Configurações")]
+    [Header("Configuration")]
     [SerializeField] private KeyCode pauseKey = KeyCode.P;
     [SerializeField] private GameObject pauseMenuUI;
     [SerializeField] private GameObject creditsPanel;
 
-    public static bool isPaused = false; // Static para acesso de outros scripts
+    public static bool isPaused = false;
+    private static bool returningFromMenu = false;
+
+    private void Awake()
+    {
+        // Garante que o jogo comece no estado correto
+        if (returningFromMenu)
+        {
+            returningFromMenu = false;
+            ForceResumeState();
+        }
+    }
 
     private void Update()
     {
-        if (Input.GetKeyDown(pauseKey))
+        if (Input.GetKeyDown(pauseKey) && !UICountdown.IsCountdownActive())
         {
-            Debug.Log("pausou");
             TogglePause();
         }
     }
@@ -34,14 +44,10 @@ public class PauseMenu : MonoBehaviour
         pauseMenuUI.SetActive(true);
 
         Time.timeScale = 0f;
-
-        // Configurações do cursor
         Cursor.visible = true;
         Cursor.lockState = CursorLockMode.None;
 
         isPaused = true;
-
-        Debug.Log("Jogo pausado"); // Para verificar no console
     }
 
     public void ResumeGame()
@@ -52,19 +58,29 @@ public class PauseMenu : MonoBehaviour
     private IEnumerator ResumeWithDelay()
     {
         yield return null;
+        ForceResumeState();
+    }
+
+    private void ForceResumeState()
+    {
         InputManager.EnableControls(true);
         pauseMenuUI.SetActive(false);
         creditsPanel.SetActive(false);
         Time.timeScale = 1f;
-
-        // Garante que o cursor está configurado corretamente
         Cursor.visible = false;
         Cursor.lockState = CursorLockMode.Locked;
 
         isPaused = false;
-
-        // Reseta todos os inputs
+        
         ResetAllInputs();
+        
+        // Reinicia todos os sistemas importantes
+        PlayerController player = FindObjectOfType<PlayerController>();
+        if (player != null)
+        {
+            player.enabled = true;
+            player.FreezePlayer(false);
+        }
     }
 
     private void ResetAllInputs()
@@ -86,16 +102,16 @@ public class PauseMenu : MonoBehaviour
 
     public void QuitToMainMenu()
     {
+        returningFromMenu = true;
         Time.timeScale = 1f;
-        SceneManager.LoadScene("Menu"); // Substitua pelo nome da sua cena
+        SceneManager.LoadScene("Menu");
     }
 
     public void QuitGame()
     {
         Application.Quit();
-
 #if UNITY_EDITOR
-        UnityEditor.EditorApplication.isPlaying = false; // Para sair no Editor
+        UnityEditor.EditorApplication.isPlaying = false;
 #endif
     }
 }

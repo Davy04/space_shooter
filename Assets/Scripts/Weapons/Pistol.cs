@@ -28,12 +28,11 @@ public class Pistol : Gun
         {
             Debug.Log(gunData.gunName + " hit " + hit.collider.name);
             target = hit.point;
-
-            // Verifica se acertou um inimigo e aplica dano
+            
             EnemyHealth enemyHealth = hit.collider.GetComponent<EnemyHealth>();
             if (enemyHealth != null)
             {
-                enemyHealth.TakeDamage(gunData.damage); // Aplica o dano do scriptable object
+                enemyHealth.TakeDamage(gunData.damage);
             }
         }
         else

@@ -7,6 +7,9 @@ public class PlayerController : MonoBehaviour
     private CharacterController controller;
     public CinemachineVirtualCamera virtualCamera;
     [SerializeField] private AudioSource footstepSound;
+    
+    [Header("Game State")]
+    private bool isFrozen = false;
 
     [Header("UI References")]
     [SerializeField] private Timer timer;
@@ -66,6 +69,7 @@ public class PlayerController : MonoBehaviour
 
     private void OnEnable()
     {
+        FreezePlayer(false);
         SetupCursor();
     }
 
@@ -80,7 +84,8 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
-
+        if (isFrozen) return;
+    
         if (timer != null && timer.IsHighScorePopupActive())
         {
             return;
@@ -238,5 +243,18 @@ public class PlayerController : MonoBehaviour
         turnInput = Input.GetAxis("Horizontal");
         mouseX = Input.GetAxis("Mouse X");
         mouseY = Input.GetAxis("Mouse Y");
+    }
+    
+    public void FreezePlayer(bool state)
+    {
+        isFrozen = state;
+        
+        if (state)
+        {
+            moveInput = 0;
+            turnInput = 0;
+            mouseX = 0;
+            mouseY = 0;
+        }
     }
 }
