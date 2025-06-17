@@ -30,4 +30,5 @@ public class PlayerStats : MonoBehaviour
     {
         OnDeath?.Invoke();
     }
+    
 }
